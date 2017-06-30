@@ -1,17 +1,16 @@
 {
     "version": "1.0.0",
-    "summary": "Example using `elm-webpack-loader`.",
-    "repository": "https://github.com/moarwick/elm-webpack-starter.git",
+    "summary": "CSV File upload and parse example",
+    "repository": "https://github.com/mrb/elm-csv-file-upload.git",
     "license": "MIT",
     "source-directories": [
         "src/elm"
     ],
     "exposed-modules": [],
     "dependencies": {
-        "elm-lang/core": "5.0.0 <= v < 6.0.0",
+        "elm-lang/core": "5.1.1 <= v < 6.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
-        "elm-lang/http": "1.0.0 <= v < 2.0.0",
-        "evancz/elm-markdown": "3.0.1 <= v < 4.0.0"
+        "periodic/elm-csv": "1.0.3 <= v < 2.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
 }

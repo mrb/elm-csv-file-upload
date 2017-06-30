@@ -1,63 +1,121 @@
 module Main exposing (..)
+
+import Csv exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing ( onClick )
+import Html.Attributes exposing (checked, class, id, placeholder, src, style, title, type_, value, width)
+import Html.Events exposing (..)
+import Json.Decode as JD
+import Ports exposing (CSVPortData, fileContentRead, fileSelected)
 
--- component import example
-import Components.Hello exposing ( hello )
+
+-- MAIN
 
 
--- APP
-main : Program Never Int Msg
+main : Program Never Model Msg
 main =
-  Html.beginnerProgram { model = model, view = view, update = update }
+    program
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
+
 
 
 -- MODEL
-type alias Model = Int
 
-model : number
-model = 0
+
+type Msg
+    = CSVSelected
+    | CSVParse CSVPortData
+
+
+type alias CSVFile =
+    { contents : String
+    , filename : String
+    }
+
+
+type alias Errors =
+    Maybe (List String)
+
+
+type alias Model =
+    { csvFile : Maybe CSVFile
+    , csvData : Csv
+    , errors : Errors
+    }
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( Model Nothing (Csv [] [ [] ]) Nothing, Cmd.none )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    fileContentRead CSVParse
+
 
 
 -- UPDATE
-type Msg = NoOp | Increment
 
-update : Msg -> Model -> Model
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case msg of
-    NoOp -> model
-    Increment -> model + 1
+    case msg of
+        CSVSelected ->
+            ( model, fileSelected "CSVInput" )
+
+        CSVParse data ->
+            let
+                newCSVFile =
+                    { contents = data.contents
+                    , filename = data.filename
+                    }
+            in
+            case Csv.parse newCSVFile.contents of
+                Ok results ->
+                    ( { model | csvFile = Just newCSVFile, csvData = results, errors = Nothing }, Cmd.none )
+
+                Err errors ->
+                    ( { model | csvFile = Nothing, errors = Just errors }, Cmd.none )
+
 
 
 -- VIEW
--- Html is defined as: elem [ attribs ][ children ]
--- CSS can be applied via class names or inline style attrib
+
+
 view : Model -> Html Msg
 view model =
-  div [ class "container", style [("margin-top", "30px"), ( "text-align", "center" )] ][    -- inline CSS (literal)
-    div [ class "row" ][
-      div [ class "col-xs-12" ][
-        div [ class "jumbotron" ][
-          img [ src "static/img/elm.jpg", style styles.img ] []                             -- inline CSS (via var)
-          , hello model                                                                     -- ext 'hello' component (takes 'model' as arg)
-          , p [] [ text ( "Elm Webpack Starter" ) ]
-          , button [ class "btn btn-primary btn-lg", onClick Increment ] [                  -- click handler
-            span[ class "glyphicon glyphicon-star" ][]                                      -- glyphicon
-            , span[][ text "FTW!" ]
-          ]
+    div [ class "FileWrapper" ]
+        [ input
+            [ type_ "file"
+            , id "CSVInput"
+            , on "change"
+                (JD.succeed CSVSelected)
+            ]
+            []
+        , csvView model.csvFile model.csvData model.errors
         ]
-      ]
-    ]
-  ]
 
 
--- CSS STYLES
-styles : { img : List ( String, String ) }
-styles =
-  {
-    img =
-      [ ( "width", "33%" )
-      , ( "border", "4px solid #337AB7")
-      ]
-  }
+csvView : Maybe CSVFile -> Csv -> Errors -> Html Msg
+csvView file csvData errors =
+    case file of
+        Just i ->
+            csvTable csvData
+
+        Nothing ->
+            ("Errors: " ++ (errors |> toString)) |> text
+
+
+csvTable : Csv -> Html Msg
+csvTable data =
+    div []
+        [ table []
+            (tr []
+                (List.map (\h -> th [] [ text h ]) data.headers)
+                :: List.map (\r -> tr [] (List.map (\c -> td [] [ text c ]) r)) data.records
+            )
+        ]
