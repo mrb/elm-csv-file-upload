@@ -2,7 +2,7 @@
 
 ## Uploading and parsing CSV files in Elm, with Ports
 
-<img src="https://raw.githubusercontent.com/mrb/elm-csv-file-upload/master/extra/csvFile.gif">
+<img src="https://raw.githubusercontent.com/mrb/elm-csv-file-upload/master/extras/csvFile.gif">
 
 <a href="https://blog.reifyworks.com/javascript-interop-with-elm-using-ports-to-read-and-parse-csv-files-fef60c318b7a">This is the code from this article</a> by Michael R. Bernstein
 
